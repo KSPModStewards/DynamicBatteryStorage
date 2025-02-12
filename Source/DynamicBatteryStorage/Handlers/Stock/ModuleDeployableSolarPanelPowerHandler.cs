@@ -50,7 +50,7 @@
           rate = panel.chargeRate;
         }
 
-        if (Settings.Kopernicus && Settings.KopernicusMultiStar)
+        if ((Settings.Kopernicus && Settings.KopernicusMultiStar) || Settings.WeatherDrivenSolarPanel)
         {
           rate = cachedRate;
         }
