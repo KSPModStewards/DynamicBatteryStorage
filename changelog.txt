@@ -1,3 +1,7 @@
+v2.3.7
+------
+- Fixed a config issue that stopped fission reactors being measured in flight
+
 v2.3.6
 ------
 - Changed how fission reactors are measured in-flight so they don't result in miscalculation of vessel generation (requires latest SH version)
