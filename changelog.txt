@@ -1,6 +1,11 @@
 v2.3.7
 ------
 - Fixed a config issue that stopped fission reactors being measured in flight
+- Added input locking to the advanced generation/consumption text fields
+- Added input validation to the advanced generation/consumption text fields
+- Fixed NaN displayed when vessel maximum power is 0
+- Fixed missing divide by two in dark time calculation at the surface of bodies
+- SM window will now disable itself when Kerbalism is enabled as well as the rest of the mod
 
 v2.3.6
 ------

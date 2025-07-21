@@ -298,7 +298,7 @@ namespace DynamicBatteryStorage.UI
     {
       if (bodyOrbitHeight == 0d)
       {
-        return body.rotationPeriod;
+        return body.rotationPeriod /2d;
 
       }
       else
