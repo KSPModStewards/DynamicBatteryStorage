@@ -243,7 +243,7 @@ namespace DynamicBatteryStorage.UI
       showWindow = false;
 
       Utils.Log("[SystemsMonitorUI]: App Launcher Ready", Utils.LogType.UI);
-      if (ApplicationLauncher.Ready && stockToolbarButton == null)
+      if (ApplicationLauncher.Ready && stockToolbarButton == null && Settings.Enabled)
       {
         if (HighLogic.LoadedSceneIsFlight || HighLogic.LoadedSceneIsEditor)
           stockToolbarButton = ApplicationLauncher.Instance.AddModApplication(
@@ -293,7 +293,7 @@ namespace DynamicBatteryStorage.UI
 
       Utils.Log("[SystemsMonitorUI]: Reset App Launcher", Utils.LogType.UI);
       FindData();
-      if (stockToolbarButton == null)
+      if (stockToolbarButton == null && Settings.Enabled)
       {
         stockToolbarButton = ApplicationLauncher.Instance.AddModApplication(
               OnToolbarButtonOn,

@@ -136,8 +136,14 @@ namespace DynamicBatteryStorage.UI
       double netPower = data.CurrentConsumption + data.GetSimulatedElectricalProdution() + userGeneration - userConsumption;
       data.GetElectricalChargeLevels(out double EC, out double maxEC);
 
-
-      batteryText.text = String.Format("{0:F0} / {1:F0} ({2:F1}%)", EC, maxEC, EC / maxEC * 100d);
+      if (maxEC > 0)
+      {
+        batteryText.text = String.Format("{0:F0} / {1:F0} ({2:F1}%)", EC, maxEC, EC / maxEC * 100d);
+      }
+      else
+      {
+        batteryText.text = "-";
+      }
       if (EC <= 0.001)
       {
         batteryText.color = colorBadText;

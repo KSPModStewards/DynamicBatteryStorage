@@ -121,16 +121,24 @@ namespace DynamicBatteryStorage.UI
       constantOnButton.onClick.AddListener(delegate { SetConstantState(true); });
 
       userConsumptionInput.contentType = InputField.ContentType.DecimalNumber;
+      userConsumptionInput.characterValidation = InputField.CharacterValidation.Decimal;
       userConsumptionInput.onValueChanged.AddListener(delegate { OnManualGenerationChange(); });
       userGenerationInput.contentType = InputField.ContentType.DecimalNumber;
+      userGenerationInput.characterValidation = InputField.CharacterValidation.Decimal;
       userGenerationInput.onValueChanged.AddListener(delegate { OnManualGenerationChange(); });
+
 
       SectionEnabled = false;
       advancedObject.SetActive(false);
       dbsObject.SetActive(false);
       Localize();
-      
+
       SetupTooltips(root, Tooltips.FindTextTooltipPrefab());
+    }
+    protected void OnDestroy()
+    {
+
+      InputLockManager.RemoveControlLock("DBSFocus");
     }
     protected void Localize()
     {
@@ -189,6 +197,22 @@ namespace DynamicBatteryStorage.UI
     protected void UpdateAdvanced()
     {
       /// what, all event driven? you monster
+      if (userGenerationInput.isFocused || userConsumptionInput
+        .isFocused)
+      {
+        if (InputLockManager.IsUnlocked(ControlTypes.KEYBOARDINPUT))
+        {
+          InputLockManager.SetControlLock(ControlTypes.KEYBOARDINPUT, "DBSFocus");
+        }
+       
+      }
+      else
+      {
+        if (InputLockManager.IsLocked(ControlTypes.KEYBOARDINPUT))
+        {
+          InputLockManager.RemoveControlLock("DBSFocus");
+        }
+      }
     }
     protected void UpdateDBS()
     {
@@ -269,7 +293,22 @@ namespace DynamicBatteryStorage.UI
     }
     public void OnManualGenerationChange()
     {
-      mainPanel.PowerUI.SetManualPowerInputs(float.Parse(userGenerationInput.text), float.Parse(userConsumptionInput.text));
+
+
+      mainPanel.PowerUI.SetManualPowerInputs(
+        ValidateManualInput(userGenerationInput),
+        ValidateManualInput(userConsumptionInput));
+    }
+
+    protected float ValidateManualInput(InputField handler)
+    {
+      string input = handler.text;
+
+      if (!float.TryParse(input, out float result))
+      {
+        result = 0f;
+      }
+      return result;
     }
     public void SetConstantState(bool state)
     {
