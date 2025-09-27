@@ -25,7 +25,7 @@ namespace DynamicBatteryStorage
     }
     protected override double GetValueFlight()
     {
-      double.TryParse(pm.Fields.GetValue("lastECpower").ToString(), out double results);
+      Utils.TryGetField(pm, "lastECpower", out double results);
       if (results > 0)
       {
         producer = false;

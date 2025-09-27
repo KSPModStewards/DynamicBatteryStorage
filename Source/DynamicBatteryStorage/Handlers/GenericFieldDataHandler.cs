@@ -53,7 +53,7 @@ namespace DynamicBatteryStorage
       double results = 0d;
       if (editorField != null)
       {
-        double.TryParse(editorField.GetValue(pm).ToString(), out results);
+        double.TryParse(editorField.GetValue(pm)?.ToString(), out results);
       }
       return results * editorValueScalar;
     }
@@ -62,7 +62,7 @@ namespace DynamicBatteryStorage
       double results = 0d;
       if (flightField != null)
       {
-        double.TryParse(flightField.GetValue(pm).ToString(), out results);
+        double.TryParse(flightField.GetValue(pm)?.ToString(), out results);
       }
       return results * flightValueScalar;
     }
