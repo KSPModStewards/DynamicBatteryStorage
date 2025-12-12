@@ -120,7 +120,7 @@ namespace DynamicBatteryStorage
       {
         result = parent.FindDeepChild(name).GetComponent<T>();
       }
-      catch (NullReferenceException e)
+      catch (NullReferenceException)
       {
         Debug.LogError($"Couldn't find {name} in children of {parent.name}");
       }

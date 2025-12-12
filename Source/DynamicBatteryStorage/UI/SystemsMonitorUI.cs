@@ -241,12 +241,11 @@ namespace DynamicBatteryStorage.UI
     protected void OnGUIAppLauncherReady()
     {
       showWindow = false;
-
       Utils.Log("[SystemsMonitorUI]: App Launcher Ready", Utils.LogType.UI);
-      if (ApplicationLauncher.Ready && stockToolbarButton == null && Settings.Enabled)
+      if (ApplicationLauncher.Ready && Settings.Enabled)
       {
-        if (HighLogic.LoadedSceneIsFlight || HighLogic.LoadedSceneIsEditor)
-          stockToolbarButton = ApplicationLauncher.Instance.AddModApplication(
+        if (stockToolbarButton == null)
+		  stockToolbarButton = ApplicationLauncher.Instance.AddModApplication(
               OnToolbarButtonOn,
               OnToolbarButtonOff,
               OnToolbarButtonHover,
@@ -255,8 +254,9 @@ namespace DynamicBatteryStorage.UI
               DummyVoid,
               ApplicationLauncher.AppScenes.VAB | ApplicationLauncher.AppScenes.SPH | ApplicationLauncher.AppScenes.FLIGHT,
               (Texture)GameDatabase.Instance.GetTexture(toolbarUIIconURLOff, false));
+		if (toolbarPanel == null)
+			CreateToolbarPanel();
       }
-      CreateToolbarPanel();
     }
 
     protected void OnGUIAppLauncherDestroyed()
