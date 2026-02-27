@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace DynamicBatteryStorage
 {
@@ -7,51 +8,55 @@ namespace DynamicBatteryStorage
   /// </summary>
   public class VesselDataManager : VesselModule
   {
-    #region Accessors
-
-    public VesselElectricalData ElectricalData { get { return electricalData; } }
-    public bool Ready { get { return dataReady; } }
-
-    #endregion
-
-    #region PrivateVariables
-
-    bool dataReady = false;
-    bool vesselLoaded = false;
+    public VesselElectricalData ElectricalData => GetElectricalData();
 
     VesselElectricalData electricalData;
-    #endregion
 
-    protected override void OnStart()
+    VesselElectricalData GetElectricalData()
     {
-      base.OnStart();
+      if (electricalData != null)
+        return electricalData;
 
-      // These events need to trigger a refresh
-      GameEvents.onVesselGoOnRails.Add(new EventData<Vessel>.OnEvent(RefreshVesselData));
-      GameEvents.onVesselWasModified.Add(new EventData<Vessel>.OnEvent(RefreshVesselData));
-    }
-
-    void OnDestroy()
-    {
-      // Clean up events when the item is destroyed
-      GameEvents.onVesselGoOnRails.Remove(RefreshVesselData);
-      GameEvents.onVesselWasModified.Remove(RefreshVesselData);
-    }
-
-    void FixedUpdate()
-    {
-      if (HighLogic.LoadedSceneIsFlight && !dataReady)
+      try
       {
-        if (!vesselLoaded && FlightGlobals.ActiveVessel == vessel)
-        {
-          RefreshVesselData();
-          vesselLoaded = true;
-        }
-        if (vesselLoaded && FlightGlobals.ActiveVessel != vessel)
-        {
-          vesselLoaded = false;
-        }
+        RefreshVesselData();
       }
+      catch (Exception e)
+      {
+        Utils.Error("RefreshVesselData threw an exception");
+        Debug.LogException(e);
+        return null;
+      }
+
+      return electricalData;
+    }
+
+    // This module is only active in the flight scene for loaded vessels.
+    public override bool ShouldBeActive()
+    {
+      if (!HighLogic.LoadedSceneIsFlight)
+        return false;
+
+      return vessel.loaded;
+    }
+
+    // Use OnEnable and OnDisable because ShouldBeActive will cause us to switch
+    // between being enabled and disabled in response to events.
+    void OnEnable()
+    {
+      GameEvents.onVesselGoOnRails.Add(RefreshVesselData);
+      GameEvents.onVesselWasModified.Add(InvalidateVesselData);
+
+      if (vessel == FlightGlobals.ActiveVessel)
+        RefreshVesselData();
+    }
+
+    void OnDisable()
+    {
+      GameEvents.onVesselGoOnRails.Remove(RefreshVesselData);
+      GameEvents.onVesselWasModified.Remove(InvalidateVesselData);
+
+      electricalData = null;
     }
 
     /// <summary>
@@ -59,22 +64,29 @@ namespace DynamicBatteryStorage
     /// </summary>
     protected void RefreshVesselData(Vessel eventVessel)
     {
-      if (vessel != null && vessel.loaded)
-      {
-        Utils.Log(String.Format("[{0}]: Refreshing VesselData from Vessel event", this.GetType().Name), Utils.LogType.VesselData);
-        RefreshVesselData();
-      }
+      if (vessel != eventVessel)
+        return;
+      if (vessel == null || !vessel.loaded)
+        return;
+
+      if (Settings.DebugVesselData)
+        Utils.Log($"[{GetType().Name}]: Refreshing VesselData from Vessel event", Utils.LogType.VesselData);
+      RefreshVesselData();
     }
+
     /// <summary>
-    /// Referesh the data, given a ConfigNode event
+    /// Invalidate the current electrical data, given a vessel event.
     /// </summary>
-    protected void RefreshVesselData(ConfigNode node)
+    /// <param name="eventVessel"></param>
+    protected void InvalidateVesselData(Vessel eventVessel)
     {
-      if (vessel != null && vessel.loaded)
-      {
-        Utils.Log(String.Format("[{0}]: Refreshing VesselData from save node event", this.GetType().Name), Utils.LogType.VesselData);
-        RefreshVesselData();
-      }
+      if (vessel != eventVessel)
+        return;
+
+      electricalData = null;
+
+      if (Settings.DebugVesselData)
+        Utils.Log($"[{GetType().Name}]: Invalidated VesselData from Vessel event", Utils.LogType.VesselData);
     }
 
     /// <summary>
@@ -86,8 +98,9 @@ namespace DynamicBatteryStorage
         return;
 
       electricalData = new VesselElectricalData(vessel.Parts);
-      dataReady = true;
-      Utils.Log(String.Format("Dumping electrical database: \n{0}", electricalData.ToString()), Utils.LogType.VesselData);
+
+      if (Settings.DebugVesselData)
+        Utils.Log($"Dumping electrical database: \n{electricalData}", Utils.LogType.VesselData);
     }
   }
 }
