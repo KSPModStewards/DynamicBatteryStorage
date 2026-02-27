@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
 namespace DynamicBatteryStorage
@@ -41,34 +38,70 @@ namespace DynamicBatteryStorage
     PartResource bufferStorage;
     Part bufferPart;
 
-    protected override void OnAwake()
+    // Only run on loaded vessels in the flight scene.
+    public override bool ShouldBeActive()
     {
-      base.OnAwake();
-      enabled = Settings.Enabled;
+      if (!Settings.Enabled)
+        return false;
+
+      if (!HighLogic.LoadedSceneIsFlight)
+        return false;
+
+      return vessel.loaded;
     }
-    public override Activation GetActivation()
+
+    void OnEnabled()
     {
-      if (Settings.Enabled)
+      GameEvents.onVesselGoOnRails.Add(CalculateElectricalData);
+      GameEvents.onVesselWasModified.Add(InvalidateElectricalData);
+    }
+
+    void OnDisable()
+    {
+      GameEvents.onVesselGoOnRails.Add(CalculateElectricalData);
+      GameEvents.onVesselWasModified.Add(InvalidateElectricalData);
+    }
+
+    void FixedUpdate()
+    {
+      if (!vesselLoaded)
       {
-        return Activation.Always;
+        vesselData = vessel.GetComponentCached(ref vesselData);
+        if (!vesselData)
+        {
+          Utils.Error(CreateVesselLogString("Could not find vessel data manager"));
+          return;
+        }
+
+        CalculateElectricalData();
+        vesselLoaded = true;
       }
+
+      analyticMode = TimeWarp.CurrentRate < timeWarpLimit;
+      if (!analyticMode)
+        DoLowWarpSimulation();
       else
-        return Activation.Never;
+        DoHighWarpSimulation();
     }
-    protected override void OnStart()
+
+    protected void InvalidateElectricalData(Vessel eventVessel)
     {
-      base.OnStart();
+      if (vessel != eventVessel)
+        return;
 
-      if (!Settings.Enabled) return;
+      vesselLoaded = false;
+      bufferPart = null;
+      bufferStorage = null;
+    }
 
-      bufferScale = Settings.BufferScaling;
-      timeWarpLimit = Settings.TimeWarpLimit;
+    protected void CalculateElectricalData(Vessel eventVessel)
+    {
+      if (vessel != eventVessel)
+        return;
+      if (!vessel.loaded)
+        return;
 
-      GameEvents.onVesselDestroy.Add(new EventData<Vessel>.OnEvent(CalculateElectricalData));
-      GameEvents.onVesselGoOnRails.Add(new EventData<Vessel>.OnEvent(CalculateElectricalData));
-      GameEvents.onVesselWasModified.Add(new EventData<Vessel>.OnEvent(CalculateElectricalData));
-
-      FindDataManager();
+      CalculateElectricalData();
     }
 
     protected override void OnSave(ConfigNode node)
@@ -78,58 +111,15 @@ namespace DynamicBatteryStorage
       base.OnSave(node);
     }
 
-    void OnDestroy()
-    {
-      GameEvents.onVesselDestroy.Remove(CalculateElectricalData);
-      GameEvents.onVesselGoOnRails.Remove(CalculateElectricalData);
-      GameEvents.onVesselWasModified.Remove(CalculateElectricalData);
-    }
-
-    void FindDataManager()
-    {
-      vesselData = vessel.GetComponent<VesselDataManager>();
-      if (!vesselData)
-      {
-        Utils.Error(CreateVesselLogString("Could not find vessel data manager"));
-      }
-    }
-
-    void FixedUpdate()
-    {
-      if (HighLogic.LoadedSceneIsFlight)
-      {
-        if (!vesselLoaded && FlightGlobals.ActiveVessel == vessel)
-        {
-          FindDataManager();
-          CalculateElectricalData();
-          vesselLoaded = true;
-        }
-        if (vesselLoaded && FlightGlobals.ActiveVessel != vessel)
-        {
-          vesselLoaded = false;
-        }
-        if (TimeWarp.CurrentRate < timeWarpLimit)
-        {
-          analyticMode = false;
-          DoLowWarpSimulation();
-        }
-        else
-        {
-          analyticMode = true;
-          DoHighWarpSimulation();
-        }
-      }
-    }
-
     /// <summary>
     /// Runs the compensation at low warp. This typically means do nothing
     /// </summary>
     protected void DoLowWarpSimulation()
     {
-      if (bufferStorage != null && bufferStorage.maxAmount != originalMax)
-      {
-        bufferStorage.maxAmount = originalMax;
-      }
+      if (bufferStorage == null)
+        return;
+
+      bufferStorage.maxAmount = originalMax;
     }
 
     /// <summary>
@@ -199,22 +189,6 @@ namespace DynamicBatteryStorage
         vessel.GetConnectedResourceTotals(PartResourceLibrary.ElectricityHashcode, out amount, out maxAmount);
         totalEcMax = maxAmount;
         CreateBufferStorage();
-      }
-    }
-
-
-    protected void CalculateElectricalData(Vessel eventVessel)
-    {
-      if (vessel != null && vessel.loaded)
-      {
-        CalculateElectricalData();
-      }
-    }
-    protected void CalculateElectricalData(ConfigNode node)
-    {
-      if (vessel != null && vessel.loaded)
-      {
-        CalculateElectricalData();
       }
     }
 
