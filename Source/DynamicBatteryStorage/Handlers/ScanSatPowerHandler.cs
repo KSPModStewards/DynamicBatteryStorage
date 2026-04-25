@@ -25,7 +25,7 @@
     }
     protected override double GetValueFlight()
     {
-      bool.TryParse(pm.Fields.GetValue("scanning").ToString(), out bool isScanning);
+      Utils.TryGetField(pm, "scanning", out bool isScanning);
       if (isScanning)
       {
         return -resource.rate;

@@ -49,44 +49,25 @@ namespace DynamicBatteryStorage
 
     public static bool TryGetField(PartModule pm, string fieldName, out bool result)
     {
-      result = false;
-      var field = pm.Fields.GetValue(fieldName);
-      if (field != null)
-      {
-        if (bool.TryParse(field.ToString(), out result))
-        {
-          return true;
-        }
-      }
-      return false;
+        result = false;
+        string field = pm?.Fields?.GetValue(fieldName)?.ToString();
+        return bool.TryParse(field, out result);
     }
 
     public static bool TryGetField(PartModule pm, string fieldName, out double result)
     {
-      result = 0d;
-      var field = pm.Fields.GetValue(fieldName);
-      if (field != null)
-      {
-        if (double.TryParse(field.ToString(), out result))
-        {
-          return true;
-        }
-      }
-      return false;
+        result = 0d;
+        string field = pm?.Fields?.GetValue(fieldName)?.ToString();
+        return double.TryParse(field, out result);
     }
+    
     public static bool TryGetField(PartModule pm, string fieldName, out float result)
     {
-      result = 0f;
-      var field = pm.Fields.GetValue(fieldName);
-      if (field != null)
-      {
-        if (float.TryParse(field.ToString(), out result))
-        {
-          return true;
-        }
-      }
-      return false;
+        result = 0f;
+        string field = pm?.Fields?.GetValue(fieldName)?.ToString();
+        return float.TryParse(field, out result);
     }
+
     public static bool TryParseEnum<T>(string str, bool caseSensitive, out T value) where T : struct
     {
       // Can't make this a type constraint...
@@ -120,7 +101,7 @@ namespace DynamicBatteryStorage
       {
         result = parent.FindDeepChild(name).GetComponent<T>();
       }
-      catch (NullReferenceException e)
+      catch (NullReferenceException)
       {
         Debug.LogError($"Couldn't find {name} in children of {parent.name}");
       }

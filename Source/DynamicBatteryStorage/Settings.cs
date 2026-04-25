@@ -212,10 +212,10 @@ namespace DynamicBatteryStorage
     public static List<String> SupportedModules(ResourcesSupported resourceType)
     {
       List<string> supportedModules = new List<string>();
-      for (int i = 0; i < HandlerPartModuleData.Count; i++)
+      for (int i = 0; i < HandlerPartModuleData?.Count; i++)
       {
-        if (HandlerPartModuleData[i].resourceType == resourceType)
-          supportedModules.Add(HandlerPartModuleData[i].handledModule);
+        if (HandlerPartModuleData[i]?.resourceType == resourceType)
+          supportedModules.Add(HandlerPartModuleData[i]?.handledModule);
       }
       return supportedModules;
     }
