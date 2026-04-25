@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UniLinq;
@@ -73,6 +73,10 @@ namespace DynamicBatteryStorage
       ConfigNode settingsNode;
 
       DetectMods();
+      if (Settings.Enabled == false)
+      {
+          return;
+      }
 
       Utils.Log("[Settings]: Started loading", Utils.LogType.Settings);
       if (GameDatabase.Instance.ExistsConfigNode(CONFIG_NODE_NAME))
@@ -143,6 +147,13 @@ namespace DynamicBatteryStorage
         {
           Utils.Log("[Settings]: Kerbalism detected. DBS will disable itself.", Utils.LogType.Any);
           Settings.Enabled = false;
+          break;
+        }
+        if (a.name.StartsWith("RealismOverhaul", StringComparison.Ordinal))
+        {
+          Utils.Log("[Settings]: Realism Overhaul detected. DBS will disable itself.", Utils.LogType.Any);
+          Settings.Enabled = false;
+          break;
         }
         // Search for kopernicus
         if (a.name.StartsWith("Kopernicus", StringComparison.Ordinal))
@@ -156,13 +167,13 @@ namespace DynamicBatteryStorage
           var msObj = starType.GetField("UseMultiStarLogic",
             BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy).GetValue(null);
           KopernicusMultiStar = (bool)msObj;
-          Utils.Log($"[Settings] Kopernicus Multi Star Logic is {KopernicusMultiStar}",Utils.LogType.Any);
+          Utils.Log($"[Settings] Kopernicus Multi Star Logic is {KopernicusMultiStar}", Utils.LogType.Any);
         }
         // Search for wdsp
         if (a.name.StartsWith("WeatherDrivenSolarPanel", StringComparison.Ordinal))
         {
           WeatherDrivenSolarPanel = true;
-          Utils.Log($"[Settings] Weather Dependent Solar Panel logic is  Multi Star Logic is {WeatherDrivenSolarPanel}", Utils.LogType.Any);
+          Utils.Log($"[Settings] Weather Dependent Solar Panel logic is {WeatherDrivenSolarPanel}", Utils.LogType.Any);
         }
           
       }
